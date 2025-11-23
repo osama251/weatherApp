@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -8,15 +9,55 @@ import 'package:weather/Models/ForecastEntry.dart';
 
 class VM extends ChangeNotifier {
   int vmCounter = 0;
+  List<ForecastEntry> _forecast = [];
+  Timer? _forecastTimer;
+  List<String> _favorites = [];
+
+  List<ForecastEntry> get forecasts => _forecast;
+  List<String> get favorites => _favorites;
 
   void increment() {
     vmCounter++;
     notifyListeners(); // tells the UI to update
   }
 
-  Future<Coordinates> fetchCoordinates() async {
+  void addFavorite(String favorite){
+    _favorites.add(favorite);
+    notifyListeners();
+  }
+
+  Future<void> startForecastUpdates(String placeName) async {
+    await fetchForecast(placeName);
+
+    _forecastTimer?.cancel();
+
+    _forecastTimer = Timer.periodic(const Duration(hours:1), (_) async {
+      try{
+        await fetchForecast(placeName);
+      }catch(e){
+        print('Could not update forecasts! $e');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _forecastTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> fetchForecast(String placeName) async{
+    Coordinates coordinates = await fetchCoordinates(placeName);
+    final list = await fetchHourlyForecast(coordinates.lon, coordinates.lat);
+    _forecast = list;
+    notifyListeners();
+  }
+
+  Future<Coordinates> fetchCoordinates(String placeName) async {
+
+    //Sigfridstorp
     final response = await http.get(
-      Uri.parse('https://maceo.sth.kth.se/weather/search?location=Sigfridstorp'),
+      Uri.parse('https://maceo.sth.kth.se/weather/search?location=$placeName'),
     );
 
     if(response.statusCode == 200) {
@@ -31,31 +72,10 @@ class VM extends ChangeNotifier {
     }
   }
 
-  Future<ForecastEntry> fetchFirstForecast() async {
+  Future<List<ForecastEntry>> fetchHourlyForecast(double lon, double lat) async {
     final response = await http.get(
       Uri.parse(
-        'https://maceo.sth.kth.se/weather/forecast?lonLat=lon/14.333/lat/60.383',
-      ),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to load forecast');
-    }
-
-    final Map<String, dynamic> root =
-    jsonDecode(response.body) as Map<String, dynamic>;
-
-    final List<dynamic> timeSeries = root['timeSeries'] as List<dynamic>;
-    final Map<String, dynamic> first =
-    timeSeries.first as Map<String, dynamic>;
-
-    return ForecastEntry.fromJson(first);
-  }
-
-  Future<List<ForecastEntry>> fetchHourlyForecast() async {
-    final response = await http.get(
-      Uri.parse(
-        'https://maceo.sth.kth.se/weather/forecast?lonLat=lon/14.333/lat/60.383',
+        'https://maceo.sth.kth.se/weather/forecast?lonLat=lon/$lon/lat/$lat',
       ),
     );
 
@@ -75,6 +95,16 @@ class VM extends ChangeNotifier {
         .map((e) => ForecastEntry.fromJson(e))
         .toList();
 
+    // TEMP Debug prints so you see what you get
+    print('ALL entries with parameters: ${allEntries.length}');
+    if (allEntries.isNotEmpty) {
+      print('first entry: ${allEntries.first.time}');
+      print('last entry : ${allEntries.last.time}');
+    }
+
+    return allEntries;
+
+    /*
     // 2) Filter: from today (local) to 7 days ahead
     final now = DateTime.now();
     final start = DateTime(now.year, now.month, now.day);           // today 00:00
@@ -89,6 +119,7 @@ class VM extends ChangeNotifier {
     filtered.sort((a, b) => a.time.compareTo(b.time));
 
     return filtered;
+    */
   }
 
 }

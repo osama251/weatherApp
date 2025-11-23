@@ -54,7 +54,18 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
+  assets:
+    - lib/Icons/sun.png
+    - lib/Icons/cloud.png
+    - lib/Icons/cloudsun.png
+    - lib/Icons/lightning.png
+    - lib/Icons/rain.png
+    - lib/Icons/rainsun.png
+    - lib/Icons/snow.png
+    - lib/Icons/snowsun.png
+    - lib/Icons/unknown.png
+    - lib/Icons/windcloudsun.png
+    - lib/Icons/windy.png
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

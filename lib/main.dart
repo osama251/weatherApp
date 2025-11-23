@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:weather/Models/Coordinates.dart';
-import 'package:weather/Views/TestView.dart';
+import 'package:weather/Views/HomeView.dart';
 import 'package:weather/VM.dart';
 import 'package:provider/provider.dart';
 
@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const TestView(),
+      home: const HomeView(),
     );
   }
 }

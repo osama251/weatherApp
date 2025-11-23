@@ -41,23 +41,33 @@ class ForecastEntry {
   String get weatherDescription {
     switch (weatherSymbol) {
       case 1:
-        return 'Clear sky';
+        return 'lib/Icons/sun.png';
       case 2:
-        return 'Nearly clear';
+        return 'lib/Icons/cloudsun.png';
       case 3:
-        return 'Variable cloudiness';
+        return 'lib/Icons/cloudsun.png';
       case 4:
-        return 'Halfclear';
+        return 'lib/Icons/cloudsun.png';
       case 5:
-        return 'Cloudy';
+        return 'lib/Icons/cloud.png';
       case 6:
-        return 'Overcast';
+        return 'lib/Icons/cloud.png';
       case 7:
-        return 'Fog';
+        return 'lib/Icons/windcloudsun.png';
       case 8:
-        return 'Light rain showers';
+        return 'lib/Icons/rain.png';
+      case 18:
+        return 'lib/Icons/rainsun.png';
+      case 19:
+      case 20:
+        return 'lib/Icons/rain.png';
+      case 25:
+        return 'lib/Icons/snowsun.png';
+      case 26:
+      case 27:
+        return 'lib/Icons/snow.png';
       default:
-        return 'Unknown weather';
+        return 'lib/Icons/unknown.png';
     }
   }
 

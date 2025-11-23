@@ -3,57 +3,41 @@ import 'package:provider/provider.dart';
 import 'package:weather/VM.dart';
 import 'package:weather/Models/ForecastEntry.dart';
 
-
-class Forecastview extends StatefulWidget {
-  const Forecastview({super.key});
+class Forecastview extends StatelessWidget {
+  const Forecastview({super.key, required this.placeName});
+  final String placeName;
   @override
-  State<Forecastview> createState() => _ForecastState();
-}
+  Widget build(BuildContext context) {
+    final vm = Provider.of<VM>(context, listen: false);
+    final forecast = vm.forecasts;
 
-class _ForecastState extends State<Forecastview>{
-  late Future<List<ForecastEntry>> futureForecast;
+    if (forecast.isEmpty) {
+      return const Text('No forecast entries');
+    }
 
-  @override
-  void initState(){
-    super.initState();
-    final vm = Provider.of<VM>(context, listen:false);
-    futureForecast = vm.fetchHourlyForecast();
-  }
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: forecast.length,
+      itemBuilder: (context, index) {
 
-  @override
-  Widget build(BuildContext context){
-    return Column(
-        children: <Widget>[
-          FutureBuilder<List<ForecastEntry>>(
-            future: futureForecast,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                final hours = snapshot.data!;
-                return ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: hours.length,
-                  itemBuilder: (context, index) {
-                    final f = hours[index];
-                    final dateStr =
-                        '${f.time.year}-${f.time.month.toString().padLeft(2, '0')}-${f.time.day.toString().padLeft(2, '0')}';
-                    final timeStr =
-                        '${f.time.hour.toString().padLeft(2, '0')}:00';
+        final f = forecast[index];
+        final dateStr =
+            '${f.time.year}-${f.time.month.toString().padLeft(2, '0')}-${f.time.day.toString().padLeft(2, '0')}';
+        final timeStr =
+            '${f.time.hour.toString().padLeft(2, '0')}:00';
 
-                    return ListTile(
-                      title: Text('$dateStr  $timeStr'),
-                      subtitle: Text('${f.temperature.toStringAsFixed(1)} °C • ${f.weatherDescription}'),
-                    );
-                  },
-                );
-              } else if (snapshot.hasError) {
-                return Text('${snapshot.error}');
-              }
-              return const CircularProgressIndicator();
-            },
+        return ListTile(
+          leading: Image.asset(
+            f.weatherDescription,
+            width: 40,
+            height: 40,
           ),
-        ]
+          title: Text('$dateStr  $timeStr'),
+          subtitle: Text(
+              '${f.temperature.toStringAsFixed(1)} °C'),
+        );
+      },
     );
   }
-
-
 }

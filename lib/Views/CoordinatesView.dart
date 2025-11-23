@@ -18,7 +18,7 @@ class _CoordinatesState extends State<Coordinatesview>{
   void initState(){
     super.initState();
     final vm = Provider.of<VM>(context, listen:false);
-    futureCoordinates = vm.fetchCoordinates();
+    futureCoordinates = vm.fetchCoordinates('Sigfridstorp');
   }
 
   @override
