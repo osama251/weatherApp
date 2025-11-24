@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weather/Models/Coordinates.dart';
 import 'package:weather/Models/ForecastEntry.dart';
 
@@ -12,26 +13,71 @@ class VM extends ChangeNotifier {
   List<ForecastEntry> _forecast = [];
   Timer? _forecastTimer;
   List<String> _favorites = [];
+  String _placeName = "";
+  double _updateValue = 1;
+  Color _color = Color.fromARGB(255, 255, 255, 255);
+  Color _textColor = Color.fromARGB(255, 0, 0, 0);
 
   List<ForecastEntry> get forecasts => _forecast;
   List<String> get favorites => _favorites;
+  String get placeName => _placeName;
+  double get updateValue => _updateValue;
+  Color get color => _color;
+  Color get textColor => _textColor;
+
+  set placeName(String value) {
+    _placeName = value;
+    notifyListeners();
+  }
+
+  set updateValue(double value){
+    _updateValue = value;
+    notifyListeners();
+  }
+
+  set color(Color value){
+    _color = value;
+    notifyListeners();
+  }
+
+  set textColor(Color value){
+    _textColor = value;
+    notifyListeners();
+  }
+
+  Future<void> init() async {
+    await loadFavorites();
+    print("Loaded favorites: $_favorites");
+  }
 
   void increment() {
     vmCounter++;
-    notifyListeners(); // tells the UI to update
+    notifyListeners();
   }
 
   void addFavorite(String favorite){
     _favorites.add(favorite);
+    saveFavorites();
     notifyListeners();
   }
 
-  Future<void> startForecastUpdates(String placeName) async {
+  Future<void> saveFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('favorites', _favorites);
+  }
+
+  Future<void> loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    _favorites = prefs.getStringList('favorites') ?? [];
+    notifyListeners();
+  }
+
+  Future<void> startForecastUpdates() async {
     await fetchForecast(placeName);
 
     _forecastTimer?.cancel();
 
-    _forecastTimer = Timer.periodic(const Duration(hours:1), (_) async {
+    _forecastTimer = Timer.periodic(Duration(hours:_updateValue.ceil()), (_) async {
       try{
         await fetchForecast(placeName);
       }catch(e){
@@ -54,28 +100,37 @@ class VM extends ChangeNotifier {
   }
 
   Future<Coordinates> fetchCoordinates(String placeName) async {
-
-    //Sigfridstorp
-    final response = await http.get(
-      Uri.parse('https://maceo.sth.kth.se/weather/search?location=$placeName'),
+    final url = Uri.parse(
+      'https://geocode.maps.co/search'
+          '?q=${Uri.encodeComponent(placeName)}'
+          '&api_key=69241deb61ed3331456023vend752de',
     );
 
-    if(response.statusCode == 200) {
+    final response = await http.get(url);
 
-      final List<dynamic> data =  jsonDecode(response.body) as List<dynamic>;
-
-      if(data.isEmpty) throw Exception('No data found!');
-
-      return Coordinates.fromJson(data[0] as Map<String, dynamic>);
-    }else{
-      throw Exception('Failed to load coordinates');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to search location: ${response.statusCode}');
     }
+
+    final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
+
+    if (data.isEmpty) {
+      throw Exception('No results found for "$placeName"');
+    }
+
+    final first = data.first as Map<String, dynamic>;
+    final coords = Coordinates.fromJson(first);
+
+    return coords;
   }
 
   Future<List<ForecastEntry>> fetchHourlyForecast(double lon, double lat) async {
     final response = await http.get(
       Uri.parse(
-        'https://maceo.sth.kth.se/weather/forecast?lonLat=lon/$lon/lat/$lat',
+        'https://api.open-meteo.com/v1/forecast'
+            '?latitude=$lat&longitude=$lon'
+            '&hourly=temperature_2m,weather_code'
+            '&timezone=auto',
       ),
     );
 
@@ -86,40 +141,30 @@ class VM extends ChangeNotifier {
     final Map<String, dynamic> root =
     jsonDecode(response.body) as Map<String, dynamic>;
 
-    final List<dynamic> ts = root['timeSeries'] as List<dynamic>;
+    final hourly = root['hourly'] as Map<String, dynamic>;
+    final List<dynamic> times = hourly['time'] as List<dynamic>;
+    final List<dynamic> temps = hourly['temperature_2m'] as List<dynamic>;
+    final List<dynamic> codes = hourly['weather_code'] as List<dynamic>;
 
-    // 1) Convert to ForecastEntry, skip entries with empty parameters
-    final allEntries = ts
-        .cast<Map<String, dynamic>>()
-        .where((e) => (e['parameters'] as List).isNotEmpty)
-        .map((e) => ForecastEntry.fromJson(e))
-        .toList();
+    final int len = [
+      times.length,
+      temps.length,
+      codes.length,
+    ].reduce((a, b) => a < b ? a : b);
 
-    // TEMP Debug prints so you see what you get
-    print('ALL entries with parameters: ${allEntries.length}');
-    if (allEntries.isNotEmpty) {
-      print('first entry: ${allEntries.first.time}');
-      print('last entry : ${allEntries.last.time}');
+    final List<ForecastEntry> entries = [];
+
+    for (int i = 0; i < len; i++) {
+      final map = <String, dynamic>{
+        'time': times[i] as String,
+        'temperature_2m': temps[i] as num,
+        'weather_code': codes[i] as num,
+      };
+
+      entries.add(ForecastEntry.fromJson(map));
     }
 
-    return allEntries;
-
-    /*
-    // 2) Filter: from today (local) to 7 days ahead
-    final now = DateTime.now();
-    final start = DateTime(now.year, now.month, now.day);           // today 00:00
-    final end = start.add(const Duration(days: 7));                  // 7 days ahead
-
-    final filtered = allEntries.where((e) {
-      final d = DateTime(e.time.year, e.time.month, e.time.day);
-      return !d.isBefore(start) && !d.isAfter(end);
-    }).toList();
-
-    // 3) Sort by time just to be sure
-    filtered.sort((a, b) => a.time.compareTo(b.time));
-
-    return filtered;
-    */
+    return entries;
   }
 
 }

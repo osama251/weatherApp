@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:weather/VM.dart';
-import 'package:weather/Views/CoordinatesView.dart';
 import 'package:weather/Views/FavoriteView.dart';
 import 'package:weather/Views/ForecastView.dart';
-import 'package:weather/Views/SecondView.dart';
+import 'package:weather/Views/SettingsView.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -14,7 +13,7 @@ class HomeView extends StatefulWidget {
 
 
 class _MyHomePageState extends State<HomeView> {
-  String? _placeName;
+
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +25,11 @@ class _MyHomePageState extends State<HomeView> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                // if (vm.vmCounter > 3) const Coordinatesview(),
+
                 const SizedBox(height: 16),
-                const Text(
-                  "Hello from HomeView!",
-                  style: TextStyle(fontSize: 24),
+                Text(
+                  vm.placeName,
+                  style: const TextStyle(fontSize: 24),
                   textDirection: TextDirection.rtl,
                 ),
                 const SizedBox(height: 16),
@@ -42,16 +41,32 @@ class _MyHomePageState extends State<HomeView> {
                   textInputAction: TextInputAction.done,
                   onSubmitted: (value) async {
                     setState(() {
-                      _placeName = value.trim();
+                      vm.placeName = value.trim();
                     });
-                    await vm.startForecastUpdates(value.trim());
-                    //Forecastview(placeName:value);
+                    await vm.startForecastUpdates();
+
                   },
                 ),
 
-                if (_placeName != null && _placeName!.isNotEmpty)
-                  Forecastview(placeName: _placeName!),
-
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SettingsView()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigoAccent,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 50, vertical: 20),
+                    textStyle: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    elevation: 20,
+                  ),
+                  child: const Text("Settings"),
+                ),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.push(
@@ -71,6 +86,10 @@ class _MyHomePageState extends State<HomeView> {
                   ),
                   child: const Text("Favorites"),
                 ),
+
+                if (vm.placeName.isNotEmpty)
+                    Forecastview(placeName: vm.placeName),
+
               ],
             ),
           ),

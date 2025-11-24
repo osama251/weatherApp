@@ -9,8 +9,9 @@ void main() {
 
     runApp(
         ChangeNotifierProvider(
+          create: (_) => VM()..init(),
           child: const MyApp(),
-          create: (_) => VM(),
+
         ),
     );
 }
@@ -21,24 +22,21 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final vm = Provider.of<VM>(context);
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
+        scaffoldBackgroundColor: vm.color,
+
+        textTheme: TextTheme(
+          bodyLarge: TextStyle(color: vm.textColor),
+          bodyMedium: TextStyle(color: vm.textColor),
+          bodySmall: TextStyle(color: vm.textColor),
+
+          titleLarge: TextStyle(color: vm.textColor),
+          titleMedium: TextStyle(color: vm.textColor),
+          titleSmall: TextStyle(color: vm.textColor),
+        ),
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const HomeView(),

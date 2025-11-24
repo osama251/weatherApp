@@ -1,34 +1,6 @@
 class ForecastEntry {
   final DateTime time;
   final double temperature;
-
-  // 1	Clear sky
-  // 2	Nearly clear sky
-  // 3	Variable cloudiness
-  // 4	Halfclear sky
-  // 5	Cloudy sky
-  // 6	Overcast
-  // 7	Fog
-  // 8	Light rain showers
-  // 9	Moderate rain showers
-  // 10	Heavy rain showers
-  // 11	Thunderstorm
-  // 12	Light sleet showers
-  // 13	Moderate sleet showers
-  // 14	Heavy sleet showers
-  // 15	Light snow showers
-  // 16	Moderate snow showers
-  // 17	Heavy snow showers
-  // 18	Light rain
-  // 19	Moderate rain
-  // 20	Heavy rain
-  // 21	Thunder
-  // 22	Light sleet
-  // 23	Moderate sleet
-  // 24	Heavy sleet
-  // 25	Light snowfall
-  // 26	Moderate snowfall
-  // 27	Heavy snowfall
   final int weatherSymbol;
 
   ForecastEntry({
@@ -37,41 +9,66 @@ class ForecastEntry {
     required this.weatherSymbol,
   });
 
-  // Nice helper to turn Wsymb2 into text
+  factory ForecastEntry.fromJson(Map<String, dynamic> json) {
+    final timeStr = json['time'] as String;
+    final temp = (json['temperature_2m'] as num).toDouble();
+    final code = (json['weather_code'] as num).toInt();
+
+    return ForecastEntry(
+      time: DateTime.parse(timeStr).toLocal(),
+      temperature: temp,
+      weatherSymbol: code,
+    );
+  }
+
+
+
+
   String get weatherDescription {
     switch (weatherSymbol) {
-      case 1:
+      case 0:
         return 'lib/Icons/sun.png';
+      case 1:
       case 2:
         return 'lib/Icons/cloudsun.png';
       case 3:
-        return 'lib/Icons/cloudsun.png';
-      case 4:
-        return 'lib/Icons/cloudsun.png';
-      case 5:
         return 'lib/Icons/cloud.png';
-      case 6:
-        return 'lib/Icons/cloud.png';
-      case 7:
+      case 45:
+      case 48:
         return 'lib/Icons/windcloudsun.png';
-      case 8:
-        return 'lib/Icons/rain.png';
-      case 18:
+      case 51:
+      case 61:
         return 'lib/Icons/rainsun.png';
-      case 19:
-      case 20:
+      case 53:
+      case 55:
+      case 56:
+      case 57:
+      case 63:
+      case 65:
+      case 66:
+      case 67:
+      case 80:
+      case 81:
+      case 82:
         return 'lib/Icons/rain.png';
-      case 25:
+      case 71:
         return 'lib/Icons/snowsun.png';
-      case 26:
-      case 27:
+      case 73:
+      case 75:
+      case 77:
+      case 85:
+      case 86:
         return 'lib/Icons/snow.png';
+      case 95:
+      case 96:
+      case 99:
+        return 'lib/Icons/lightning.png';
       default:
         return 'lib/Icons/unknown.png';
     }
   }
 
-  factory ForecastEntry.fromJson(Map<String, dynamic> json) {
+  /*factory ForecastEntry.fromJson(Map<String, dynamic> json) {
     final params =
     (json['parameters'] as List).cast<Map<String, dynamic>>();
 
@@ -89,6 +86,6 @@ class ForecastEntry {
       temperature: temp,
       weatherSymbol: wsymb2,
     );
-  }
+  }*/
 
 }

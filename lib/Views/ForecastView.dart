@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:weather/VM.dart';
-import 'package:weather/Models/ForecastEntry.dart';
 
 class Forecastview extends StatelessWidget {
   const Forecastview({super.key, required this.placeName});
@@ -12,7 +11,7 @@ class Forecastview extends StatelessWidget {
     final forecast = vm.forecasts;
 
     if (forecast.isEmpty) {
-      return const Text('No forecast entries');
+      return Text('No forecast entries: $placeName');
     }
 
     return ListView.builder(
@@ -33,9 +32,9 @@ class Forecastview extends StatelessWidget {
             width: 40,
             height: 40,
           ),
-          title: Text('$dateStr  $timeStr'),
+          title: Text('$dateStr  $timeStr', style: TextStyle(color: vm.textColor),),
           subtitle: Text(
-              '${f.temperature.toStringAsFixed(1)} °C'),
+              '${f.temperature.toStringAsFixed(1)} °C', style: TextStyle(color: vm.textColor)),
         );
       },
     );
