@@ -1,16 +1,28 @@
-# weather
+# WeatherApp (Flutter)
 
-A new Flutter project.
+A cross-platform **Flutter weather application** built as a university project.  
+The app allows users to search for cities, view current weather and forecasts, save favorite locations, and customize the app theme.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## Features
 
-A few resources to get you started if this is your first Flutter project:
+- **Current weather**
+- **Hourly forecast**
+- **7-day forecast**
+- **Search by city name**
+- **Save favorite locations**
+- **Change color theme**
+- **Persistent settings & favorites** using SharedPreferences
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Tech Stack
+
+- **Flutter** (Dart)
+- **REST APIs**
+  - Geocoding: `geocode.maps.co`
+  - Weather data: `open-meteo.com`
+- **HTTP** for API requests
+- **SharedPreferences** for local persistence
+- **Material UI**
